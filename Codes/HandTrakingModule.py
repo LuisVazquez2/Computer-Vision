@@ -3,18 +3,24 @@ import mediapipe as mp
 import time
 
 
-class hand_detector():
-    def __init__(self, mode=False, maxHands=2, complexity = 1, detectionCon=0.5, trackCon=0.5):
+class hand_detector:
+    def __init__(
+        self, mode=False, maxHands=2, complexity=1, detectionCon=0.5, trackCon=0.5
+    ):
         self.mode = mode
         self.maxHands = maxHands
         self.complexity = complexity
         self.detectionCon = detectionCon
         self.trackCon = trackCon
 
-
         self.mpHands = mp.solutions.hands
-        self.hands = self.mpHands.Hands(self.mode, self.maxHands, self.complexity,
-                                        self.detectionCon, self.trackCon,)
+        self.hands = self.mpHands.Hands(
+            self.mode,
+            self.maxHands,
+            self.complexity,
+            self.detectionCon,
+            self.trackCon,
+        )
         self.mpDraw = mp.solutions.drawing_utils
 
     def find_hands(self, img, draw=True):
@@ -24,27 +30,63 @@ class hand_detector():
         if self.results.multi_hand_landmarks:
             for Hand in self.results.multi_hand_landmarks:
                 if draw:
-                    self.mpDraw.draw_landmarks(
-                        img, Hand, self.mpHands.HAND_CONNECTIONS)
+                    self.mpDraw.draw_landmarks(img, Hand, self.mpHands.HAND_CONNECTIONS)
         return img
+
     def find_position(self, img, handNo=0, draw=True):
-        lmlist = list()
+        # lmlist = list()
+        # if self.results.multi_hand_landmarks:
+        #     myhand = self.results.multi_hand_landmarks[handNo]
+        #     for id, lm in enumerate(myhand.landmark):
+        #         h, w, c = img.shape
+        #         cx, cy = int(lm.x*w), int(lm.y*h)
+        #         lmlist.append([id,cx,cy])
+        #         if draw:
+        #             cv2.circle(img, (cx, cy), 3, (255, 0, 0), cv2.FILLED)
+        # return lmlist for one hand
+
+        # for multiple hands
+        auxi = list()
+        lmlist = [[],[]]
         if self.results.multi_hand_landmarks:
-            myhand = self.results.multi_hand_landmarks[handNo]
-            for id, lm in enumerate(myhand.landmark):
-                h, w, c = img.shape
-                cx, cy = int(lm.x*w), int(lm.y*h)
-                lmlist.append([id,cx,cy])
-                if draw:
-                    cv2.circle(img, (cx, cy), 3, (255, 0, 0), cv2.FILLED)
+            for Hand in self.results.multi_hand_landmarks:
+                for id, lm in enumerate(Hand.landmark):
+                    h, w, c = img.shape
+                    cx, cy = int(lm.x * w), int(lm.y * h)
+                    auxi.append([id, cx, cy])
+                    if draw:
+                        cv2.circle(img, (cx, cy), 3, (255, 0, 0), cv2.FILLED)
+
+            if auxi[0][1] > auxi[4][1]:
+                #print("Left Hand")
+                if len(auxi)>20:
+                    lmlist[1]=auxi[0:21]
+                    lmlist[0]=auxi[21::]
+                else:
+                    lmlist[1]=auxi[0:21]
+            elif auxi[4][1] > auxi[0][1]:
+                #print("Right Hand")
+                if len(auxi)>20:
+                    lmlist[0]=auxi[0:21]
+                    lmlist[1]=auxi[21::]
+                else:
+                    lmlist[0]=auxi[0:21]
         return lmlist
+
 
 def print_fps(obj, Ptime, img):
     Ctime = time.time()
-    fps = 1/(Ctime - Ptime)
+    fps = 1 / (Ctime - Ptime)
     Ptime = Ctime
-    obj.putText(img, str(f"FPS : {int(fps)}"), (10, 30),
-                cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 255), 3)
+    obj.putText(
+        img,
+        str(f"FPS : {int(fps)}"),
+        (10, 30),
+        cv2.FONT_HERSHEY_PLAIN,
+        3,
+        (255, 0, 255),
+        3,
+    )
     return Ptime
 
 
