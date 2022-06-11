@@ -1,4 +1,4 @@
-#Computer Vision
+# Computer Vision
 Projects in Python using some libraries open source
 
 The folder of codes include:
@@ -9,4 +9,3 @@ The folder of codes include:
     * mediapipe
     * opencv-python
     * pycaw
-    
